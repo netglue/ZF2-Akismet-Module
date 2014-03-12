@@ -17,6 +17,11 @@ class Akismet extends AbstractValidator implements AkismetServiceAwareInterface 
 	);
 	
 	/**
+	 * Options
+	 * @var array
+	 */
+	
+	/**
 	 * @todo Comment Type should be a validator option
 	 */
 	

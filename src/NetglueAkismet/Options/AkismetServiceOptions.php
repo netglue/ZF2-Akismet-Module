@@ -24,6 +24,8 @@ class AkismetServiceOptions extends AbstractOptions {
 	
 	protected $websiteCharset = 'UTF-8';
 	
+	protected $invalidParamsThrowsException = false;
+	
 	public function setApiKey($key) {
 		$this->apiKey = (string) $key;
 		return $this;
@@ -82,6 +84,19 @@ class AkismetServiceOptions extends AbstractOptions {
 	
 	public function getWebsiteCharset() {
 		return $this->websiteCharset;
+	}
+	
+	public function setInvalidParamsThrowsException($flag) {
+		$this->invalidParamsThrowsException = (bool) $flag;
+		return $this;
+	}
+	
+	public function getInvalidParamsThrowsException() {
+		return $this->invalidParamsThrowsException;
+	}
+	
+	public function throwExceptionForInvalidParams() {
+		return $this->invalidParamsThrowsException;
 	}
 	
 }
