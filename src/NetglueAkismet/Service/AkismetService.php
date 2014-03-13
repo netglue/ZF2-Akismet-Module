@@ -9,35 +9,94 @@ use Zend\Uri\Http as HttpUri;
 
 class AkismetService {
 	
+	/**
+	 * Api Version used for constructing URIs
+	 */
 	const AKISMET_VERSION = '1.1';
 	
+	/**
+	 * Api Domain
+	 */
 	const AKISMET_SERVICE_DOMAIN = 'rest.akismet.com';
 	
+	/**
+	 * Api Scheme (http)
+	 */
 	const AKISMET_SCHEME = 'http';
 	
+	/**
+	 * HTTP Method for API requests
+	 */
 	const AKISMET_METHOD = 'post';
 	
-	
+	/**
+	 * Akismet Client Version
+	 */
 	const VERSION = '0.0.1';
 	
+	/**
+	 * User Agent String
+	 */
 	const USER_AGENT = 'NetglueAkismetModule';
 	
+	/**
+	 * Client Options
+	 * @var AkismetServiceOptions
+	 */
 	protected $options;
 	
+	/**
+	 * HTTP Client
+	 * @var HttpClient
+	 */
 	protected $httpClient;
 	
+	/**
+	 * Website Uri
+	 * @var HttpUri
+	 */
 	protected $website;
+	
+	/**
+	 * Current Request permalink
+	 * @var HttpUri
+	 */
 	protected $permalink;
 	
+	/**
+	 * API End Point Paths
+	 * @var array
+	 */
 	protected $endpoints = array(
-		'commentCheck' => 'comment-check',
-		'keyVerify' => 'verify-key',
-		'submitSpam' => 'submit-spam',
-		'submitHam' => 'submit-ham',
+		'comment-check' => 'comment-check',
+		'verify-key' => 'verify-key',
+		'submit-spam' => 'submit-spam',
+		'submit-ham' => 'submit-ham',
 	);
 	
+	/**
+	 * Valid parameters for each api method
+	 * @var array
+	 */
 	protected $validParams = array(
-		'commentCheck' => array(
+		'comment-check' => array(
+			'blog',
+			'user_ip',
+			'user_agent',
+			'referrer',
+			'permalink',
+			'comment_type',
+			'comment_author',
+			'comment_author_email',
+			'comment_author_url',
+			'comment_content',
+			'comment_date_gmt',
+			'comment_post_modified_gmt',
+			'blog_lang',
+			'blog_charset',
+			'user_role',
+		),
+		'submit-spam' => array(
 			'blog',
 			'user_ip',
 			'user_agent',
@@ -53,14 +112,44 @@ class AkismetService {
 			'blog_lang',
 			'blog_charset',
 		),
+		'submit-ham' => array(
+			'blog',
+			'user_ip',
+			'user_agent',
+			'referrer',
+			'permalink',
+			'comment_type',
+			'comment_author',
+			'comment_author_email',
+			'comment_author_url',
+			'comment_content',
+			'comment_date_gmt',
+			'comment_post_modified_gmt',
+			'blog_lang',
+			'blog_charset',
+		),
+		'verify-key' => array(
+			'blog',
+			'key',
+		),
 	);
 	
+	/**
+	 * Optionally  Provide options to the constructor
+	 * @param array|Traversable|AkismetServiceOptions $options
+	 * @return void
+	 */
 	public function __construct($options = NULL) {
 		if($options) {
 			$this->setOptions($options);
 		}
 	}
 	
+	/**
+	 * Set Options
+	 * @param array|Traversable|AkismetServiceOptions $options
+	 * @return self
+	 */
 	public function setOptions($options = array()) {
 		if(!$options instanceof AkismetServiceOptions) {
 			$options = new AkismetServiceOptions($options);
@@ -69,6 +158,10 @@ class AkismetService {
 		return $this;
 	}
 	
+	/**
+	 * Get Options
+	 * @return AkismetServiceOptions $options
+	 */
 	public function getOptions() {
 		if(!$this->options instanceof AkismetServiceOptions) {
 			$this->setOptions(array());
@@ -76,12 +169,20 @@ class AkismetService {
 		return $this->options;
 	}
 	
-	
+	/**
+	 * Set HTTP Client
+	 * @param HttpClient $client
+	 * @return self
+	 */
 	public function setHttpClient(HttpClient $client) {
 		$this->httpClient = $client;
 		return $this;
 	}
 	
+	/**
+	 * Get Http Client
+	 * @return HttpClient
+	 */
 	public function getHttpClient() {
 		if(!$this->httpClient) {
 			$client = new HttpClient;
@@ -91,62 +192,187 @@ class AkismetService {
 	}
 	
 	/**
-	 * @todo Ignore invalid params, don't throw exceptions
+	 * Return URI for the given API method
+	 * @param string $method
+	 * @return string
 	 */
-	public function isSpam($content = NULL, $email = NULL, $type = NULL, $params = array()) {
-		$options = $this->getOptions();
-		$data = $this->getDefaultParamsFromRequest();
-		$data = array_merge($data, $params);
-		$data['comment_content'] = $content;
-		$data['comment_author_email'] = $email;
-		$data['comment_type'] = $type;
-		$this->validateParams($data);
+	public function getMethodUri($method) {
+		if(!array_key_exists($method, $this->endpoints)) {
+			throw new Exception\InvalidArgumentException("{$method} is not a valid API method");
+		}
+		if($method === 'verify-key') {
+			return sprintf('%s://%s/%s/%s',
+				self::AKISMET_SCHEME,
+				self::AKISMET_SERVICE_DOMAIN,
+				self::AKISMET_VERSION,
+				$this->endpoints['verify-key']);
+		}
+		return sprintf('%s://%s.%s/%s/%s',
+			self::AKISMET_SCHEME,
+			$this->getOptions()->getApiKey(),
+			self::AKISMET_SERVICE_DOMAIN,
+			self::AKISMET_VERSION,
+			$this->endpoints[$method]);
+	}
+	
+	/**
+	 * Return available endpoints
+	 * @return array
+	 */
+	public function getAvailableEndpoints() {
+		return $this->endpoints;
+	}
+	
+	/**
+	 * Call the given method with the params provided
+	 * @param string $method
+	 * @param array $params
+	 * @return \Zend\Http\Response
+	 * @throws Exception\ExceptionInterface
+	 */
+	public function call($method, array $params) {
+		if(!array_key_exists($method, $this->endpoints)) {
+			throw new Exception\InvalidArgumentException("{$method} is not a valid API method");
+		}
 		
+		// Strip out invalid params and normalise
+		$data = $this->prepareParams($method, $params);
+		
+		// Setup HTTP Client
 		$client = $this->getHttpClient();
 		$clientOptions = array(
 			'useragent' => $this->getUserAgent(),
 		);
-		$uri = sprintf('%s://%s.%s/%s/%s',
-			self::AKISMET_SCHEME,
-			$options->getApiKey(),
-			self::AKISMET_SERVICE_DOMAIN,
-			self::AKISMET_VERSION,
-			$this->endpoints['commentCheck']);
 		try {
 			$client->reset()
-				->setUri($uri)
+				->setUri($this->getMethodUri($method))
 				->setMethod(self::AKISMET_METHOD)
 				->setOptions($clientOptions);
 		
-			$method = 'setParameter'.ucfirst(strtolower(self::AKISMET_METHOD));
-			$client->{$method}($data);
+			$clientMethod = 'setParameter'.ucfirst(strtolower(self::AKISMET_METHOD));
+			$client->{$clientMethod}($data);
 			$response = $client->send();
 			if($response->isSuccess()) {
-				$body = $response->getBody();
-				if(strtolower($body) == 'true') {
-					return true;
-				}
-				if(strtolower($body) == 'false') {
-					return false;
-				}
+				return $response;
 			}
-			throw new Exception\RuntimeException('Invalid Akismet Request: '.$body);
+			throw new Exception\RuntimeException('Invalid Akismet Request: '.$response->getReasonPhrase(), $response->getStatusCode());
 		} catch(\Exception $e) {
-			throw new Exception\RuntimeException('Exception thrown', NULL, $e);
+			throw new Exception\RuntimeException($e->getMessage(), $e->getCode(), $e);
 		}
-		
 	}
 	
-	protected function validateParams($method, $params = array()) {
+	/**
+	 * Whether the given content is considered spam
+	 * @param string $content
+	 * @param string $email
+	 * @param string $type
+	 * @param array $params
+	 * @return bool True = Spammy, False = Not Spammy
+	 * @throws Exception\ExceptionIterface
+	 * @link https://akismet.com/development/api/#comment-check
+	 */
+	public function isSpam($content, $email = NULL, $type = NULL, $params = array()) {
+		$params['comment_content'] = $content;
+		$params['comment_author_email'] = $email;
+		// Only set comment type if non-empty otherwise default in config used
+		if(!empty($type)) {
+			$params['comment_type'] = $type;
+		}
+		
+		$response = $this->call('comment-check', $params);
+		$body = $response->getBody();
+		if(strtolower($body) == 'true') {
+			return true;
+		}
+		return false;
+	}
+	
+	public function submitSpam($content, $email = NULL, $type = NULL, $params = array()) {
+		$params['comment_content'] = $content;
+		$params['comment_author_email'] = $email;
+		// Only set comment type if non-empty otherwise default in config used
+		if(!empty($type)) {
+			$params['comment_type'] = $type;
+		}
+		
+		$response = $this->call('submit-spam', $params);
+		$body = $response->getBody();
+		if(strtolower(trim($body)) == 'thanks for making the web a better place.') {
+			return true;
+		}
+		return false;
+	}
+	
+	public function submitHam($content, $email = NULL, $type = NULL, $params = array()) {
+		$params['comment_content'] = $content;
+		$params['comment_author_email'] = $email;
+		// Only set comment type if non-empty otherwise default in config used
+		if(!empty($type)) {
+			$params['comment_type'] = $type;
+		}
+		
+		$response = $this->call('submit-spam', $params);
+		$body = $response->getBody();
+		if(strtolower(trim($body)) == 'thanks for making the web a better place.') {
+			return true;
+		}
+		return false;
+	}
+	
+	public function verifyKey($params = array()) {
+		if(!isset($params['key'])) {
+			$params['key'] = $this->getOptions()->getApiKey();
+		}
+		$response = $this->call('verify-key', $params);
+		$body = $response->getBody();
+		if(strtolower(trim($body)) == 'valid') {
+			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Prepare Post params array for the given method
+	 * @param string $method
+	 * @param array $params
+	 * @return array
+	 */
+	public function prepareParams($method, array $params) {
+		// Load defaults
+		$options = $this->getOptions();
+		$data = $this->getDefaultParamsFromRequest();
+		// Merge in user params overwriting defaults
+		$data = array_merge($data, $params);
+		$this->normaliseParams($method, $data);
+		return $data;
+	}
+	
+	/**
+	 * Strips out parameters that are not listed in $this->validParams for the given method or throws an exception depending on config
+	 * @param string $method
+	 * @param array &$params
+	 * @throws Exception\InvalidArgumentException
+	 * @return void
+	 */
+	public function normaliseParams($method, &$params = array()) {
 		$valid = $this->validParams[$method];
 		foreach($params as $param => $value) {
 			if(!in_array($param, $valid)) {
-				throw new Exception\InvalidArgumentException('Invalid parameter: '.$param);
+				if($this->getOptions()->throwExceptionForInvalidParams()) {
+					throw new Exception\InvalidArgumentException(sprintf('Invalid parameter %s for API method %s',
+						$param,
+						$method));
+				}
+				unset($params[$param]);
 			}
 		}
 	}
 	
-	protected function getDefaultParamsFromRequest() {
+	/**
+	 * Returns an array of request data to be sent to the remote service populated with defaults from options and data from the current request
+	 * @return array
+	 */
+	public function getDefaultParamsFromRequest() {
 		$options = $this->getOptions();
 		
 		$data = array(
@@ -163,6 +389,11 @@ class AkismetService {
 		return $data;
 	}
 	
+	/**
+	 * Return the full URI for the current request
+	 * Prefixed by configured website address
+	 * @return HttpUri
+	 */
 	public function getPermalinkUri() {
 		if($this->permalink) {
 			return $this->permalink;
@@ -176,6 +407,12 @@ class AkismetService {
 		return $permalink;
 	}
 	
+	/**
+	 * Return the base website URI
+	 *
+	 * Either returns whatever was configured, or works it out from the current request
+	 * @return HttpUri
+	 */
 	public function getWebsiteUri() {
 		if($this->website) {
 			return $this->website;
@@ -189,11 +426,7 @@ class AkismetService {
 				$website->setHost($_SERVER['HTTP_HOST']);
 			}
 			$website->setScheme('http');
-			if(
-				(isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443')
-				||
-				(isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on')
-			) {
+			if( (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443') || (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on') ) {
 				$website->setScheme('https');
 			}
 		}
@@ -204,8 +437,25 @@ class AkismetService {
 		return $website;
 	}
 	
+	/**
+	 * Return user agent string for this client
+	 * @return string
+	 */
 	public function getUserAgent() {
 		return sprintf('%s/%s', self::USER_AGENT, self::VERSION);
+	}
+	
+	/**
+	 * Return the array of expected paramters for the given api method
+	 * @param string $method
+	 * @return array
+	 * @throws Exception\InvalidArgumentException if the given method does not exist
+	 */
+	public function getParameterListForMethod($method) {
+		if(!array_key_exists($method, $this->endpoints)) {
+			throw new Exception\InvalidArgumentException('No such method '.$method);
+		}
+		return $this->validParams[$method];
 	}
 	
 }

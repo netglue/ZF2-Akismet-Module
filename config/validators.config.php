@@ -7,11 +7,11 @@ return array(
 	),
 	
 	'aliases' => array(
-	
+		'AkismetValidator' => 'NetglueAkismet\Validator\Akismet',
 	),
 	
 	'invokables' => array(
-		
+		'NetglueAkismet\Validator\Akismet' => 'NetglueAkismet\Validator\Akismet',
 	),
 	
 	'initializers' => array(
