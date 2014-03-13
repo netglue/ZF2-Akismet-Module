@@ -9,7 +9,7 @@
 		"module",
 		"zf2"
 	],
-	"homepage": "https://bitbucket.org/netglue/zf2-akismet-module",
+	"homepage": "https://github.com/netglue/ZF2-Akismet-Module",
 	"authors": [
 		{
 			"name": "George Steel",
@@ -17,10 +17,6 @@
 			"homepage": "http://netglue.co"
 		}
 	],
-	"config" : {
-    "preferred-install" : "source",
-    "process-timeout" : 600
-  },
 	"require": {
 		"php": ">=5.3.3",
 		"zendframework/zendframework": "~2.2"
