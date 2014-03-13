@@ -440,4 +440,16 @@ class AkismetService {
 		return sprintf('%s/%s', self::USER_AGENT, self::VERSION);
 	}
 	
+	/**
+	 * Return the array of expected paramters for the given api method
+	 * @param string $method
+	 * @return array
+	 * @throws Exception\InvalidArgumentException if the given method does not exist
+	 */
+	public function getParameterListForMethod($method) {
+		if(!array_key_exists($method, $this->endpoints)) {
+			throw new Exception\InvalidArgumentException('No such method '.$method);
+		}
+		return $this->validParams[$method];
+	}
 }
