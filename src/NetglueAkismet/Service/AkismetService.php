@@ -68,10 +68,10 @@ class AkismetService {
 	 * @var array
 	 */
 	protected $endpoints = array(
-		'commentCheck' => 'comment-check',
-		'verifyKey' => 'verify-key',
-		'submitSpam' => 'submit-spam',
-		'submitHam' => 'submit-ham',
+		'comment-check' => 'comment-check',
+		'verify-key' => 'verify-key',
+		'submit-spam' => 'submit-spam',
+		'submit-ham' => 'submit-ham',
 	);
 	
 	/**
@@ -79,7 +79,7 @@ class AkismetService {
 	 * @var array
 	 */
 	protected $validParams = array(
-		'commentCheck' => array(
+		'comment-check' => array(
 			'blog',
 			'user_ip',
 			'user_agent',
@@ -95,7 +95,7 @@ class AkismetService {
 			'blog_lang',
 			'blog_charset',
 		),
-		'submitSpam' => array(
+		'submit-spam' => array(
 			'blog',
 			'user_ip',
 			'user_agent',
@@ -111,7 +111,7 @@ class AkismetService {
 			'blog_lang',
 			'blog_charset',
 		),
-		'submitHam' => array(
+		'submit-ham' => array(
 			'blog',
 			'user_ip',
 			'user_agent',
@@ -127,7 +127,7 @@ class AkismetService {
 			'blog_lang',
 			'blog_charset',
 		),
-		'verifyKey' => array(
+		'verify-key' => array(
 			'blog',
 			'key',
 		),
@@ -199,7 +199,7 @@ class AkismetService {
 		if(!array_key_exists($method, $this->endpoints)) {
 			throw new Exception\InvalidArgumentException("{$method} is not a valid API method");
 		}
-		if($method === 'verifyKey') {
+		if($method === 'verify-key') {
 			return sprintf('%s://%s/%s/%s',
 				self::AKISMET_SCHEME,
 				self::AKISMET_SERVICE_DOMAIN,
@@ -227,7 +227,7 @@ class AkismetService {
 		}
 		
 		// Strip out invalid params and normalise
-		$data = $this->prepareParams('commentCheck', $params);
+		$data = $this->prepareParams($method, $params);
 		
 		// Setup HTTP Client
 		$client = $this->getHttpClient();
@@ -270,7 +270,7 @@ class AkismetService {
 			$params['comment_type'] = $type;
 		}
 		
-		$response = $this->call('commentCheck', $params);
+		$response = $this->call('comment-check', $params);
 		$body = $response->getBody();
 		if(strtolower($body) == 'true') {
 			return true;
@@ -286,7 +286,7 @@ class AkismetService {
 			$params['comment_type'] = $type;
 		}
 		
-		$response = $this->call('submitSpam', $params);
+		$response = $this->call('submit-spam', $params);
 		$body = $response->getBody();
 		if(strtolower(trim($body)) == 'thanks for making the web a better place.') {
 			return true;
@@ -302,7 +302,7 @@ class AkismetService {
 			$params['comment_type'] = $type;
 		}
 		
-		$response = $this->call('submitSpam', $params);
+		$response = $this->call('submit-spam', $params);
 		$body = $response->getBody();
 		if(strtolower(trim($body)) == 'thanks for making the web a better place.') {
 			return true;
@@ -314,7 +314,7 @@ class AkismetService {
 		if(!isset($params['key'])) {
 			$params['key'] = $this->getOptions()->getApiKey();
 		}
-		$response = $this->call('verifyKey', $params);
+		$response = $this->call('verify-key', $params);
 		$body = $response->getBody();
 		if(strtolower(trim($body)) == 'valid') {
 			return true;
