@@ -1,7 +1,7 @@
 {
 	"name": "netglue/zf2-akismet-module",
 	"type": "module",
-	"license": "MIT",
+	"license": "BSD-3-Clause",
 	"description" : "ZF2 module that provides an Akismet service and validator",
 	"keywords": [
 		"akismet",
