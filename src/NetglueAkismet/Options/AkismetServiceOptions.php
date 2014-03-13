@@ -2,7 +2,7 @@
 
 namespace NetglueAkismet\Options;
 
-use Zend\StdLib\AbstractOptions;
+use Zend\Stdlib\AbstractOptions;
 use NetglueAkismet\Exception;
 
 use Zend\Uri\Http as HttpUri;
