@@ -1,0 +1,36 @@
+{
+	"name": "netglue/zf2-akismet-module",
+	"type": "module",
+	"license": "MIT",
+	"description" : "ZF2 module that provides an Akismet service and validator",
+	"keywords": [
+		"akismet",
+		"netglue",
+		"module",
+		"zf2"
+	],
+	"homepage": "https://bitbucket.org/netglue/zf2-akismet-module",
+	"authors": [
+		{
+			"name": "George Steel",
+			"email": "george@net-glue.co.uk",
+			"homepage": "http://netglue.co"
+		}
+	],
+	"config" : {
+    "preferred-install" : "source",
+    "process-timeout" : 600
+  },
+	"require": {
+		"php": ">=5.3.3",
+		"zendframework/zendframework": "~2.2"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "~3.7"
+	},
+	"autoload": {
+		"psr-0": {
+			"NetglueAkismet\\": "src/"
+		}
+	}
+}
