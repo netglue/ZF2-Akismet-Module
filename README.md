@@ -35,7 +35,7 @@ Not all of the parameters are required and all of them can be passed into the `$
 
 ## Validator
 
-The validator is registered through the `ValidatorManager` by the Module as it depends on a service instance. Providing your form elements are created using the form element manager/factory stuff the validator should be ready to go.
+The validator is registered through the `ValidatorManager` by the Module as it depends on a service instance. Providing your form elements are created using the form element manager/factory stuff the validator should be ready to go - this is important. You must be intialising your form with `$formElementManager->get('My\Form\Name');` in order for the validator to be properly initialised.
 
 For example, set up your input filter config like this:
 
