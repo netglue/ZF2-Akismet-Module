@@ -94,6 +94,7 @@ class AkismetService {
 			'comment_post_modified_gmt',
 			'blog_lang',
 			'blog_charset',
+			'user_role',
 		),
 		'submit-spam' => array(
 			'blog',
@@ -204,14 +205,22 @@ class AkismetService {
 				self::AKISMET_SCHEME,
 				self::AKISMET_SERVICE_DOMAIN,
 				self::AKISMET_VERSION,
-				$this->endpoints['keyVerify']);
+				$this->endpoints['verify-key']);
 		}
 		return sprintf('%s://%s.%s/%s/%s',
 			self::AKISMET_SCHEME,
-			$options->getApiKey(),
+			$this->getOptions()->getApiKey(),
 			self::AKISMET_SERVICE_DOMAIN,
 			self::AKISMET_VERSION,
 			$this->endpoints[$method]);
+	}
+	
+	/**
+	 * Return available endpoints
+	 * @return array
+	 */
+	public function getAvailableEndpoints() {
+		return $this->endpoints;
 	}
 	
 	/**
@@ -363,7 +372,7 @@ class AkismetService {
 	 * Returns an array of request data to be sent to the remote service populated with defaults from options and data from the current request
 	 * @return array
 	 */
-	protected function getDefaultParamsFromRequest() {
+	public function getDefaultParamsFromRequest() {
 		$options = $this->getOptions();
 		
 		$data = array(
@@ -417,11 +426,7 @@ class AkismetService {
 				$website->setHost($_SERVER['HTTP_HOST']);
 			}
 			$website->setScheme('http');
-			if(
-				(isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443')
-				||
-				(isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on')
-			) {
+			if( (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443') || (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) == 'on') ) {
 				$website->setScheme('https');
 			}
 		}
@@ -452,4 +457,5 @@ class AkismetService {
 		}
 		return $this->validParams[$method];
 	}
+	
 }
