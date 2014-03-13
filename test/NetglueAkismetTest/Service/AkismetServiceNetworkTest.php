@@ -6,6 +6,7 @@ use PHPUnit_Framework_TestCase;
 
 use NetglueAkismet\Options\AkismetServiceOptions;
 use NetglueAkismet\Service\AkismetService;
+use NetglueAkismet\Validator\Akismet;
 
 use Zend\Http\Client as HttpClient;
 
@@ -88,5 +89,24 @@ class AkismetServiceNetworkTest extends PHPUnit_Framework_TestCase {
 		$result = $service->isSpam('Test', 'someone@example.com', 'comment', $params);
 		$this->assertInternalType('bool', $result);
 		$this->assertFalse($result, 'Expected isSpam to return false');
+	}
+	
+	/**
+	 * @covers NetglueAkismet\Validator\Akismet::isValid
+	 */
+	public function testValidatorIsValid() {
+		$v = new Akismet;
+		$v->setAkismetService($this->getService());
+		$context = array(
+			'comment_author' => 'viagra-test-123',
+		);
+		$result = $v->isValid('Some Content', $context);
+		$this->assertFalse($result);
+		
+		$context = array(
+			'user_role' => 'administrator',
+		);
+		$result = $v->isValid('Some Content', $context);
+		$this->assertTrue($result);
 	}
 }

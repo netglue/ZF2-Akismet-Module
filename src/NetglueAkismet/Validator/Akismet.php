@@ -30,6 +30,12 @@ class Akismet extends AbstractValidator implements AkismetServiceAwareInterface 
 	);
 	
 	/**
+	 * Options
+	 * @var array
+	 */
+	protected $options = array();
+	
+	/**
 	 * Constructor
 	 * @param Traversable|array $options
 	 * @return void

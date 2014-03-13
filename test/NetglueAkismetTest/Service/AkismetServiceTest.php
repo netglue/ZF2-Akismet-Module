@@ -9,10 +9,22 @@ use NetglueAkismet\Service\AkismetService;
 
 use Zend\Http\Client as HttpClient;
 
+use NetglueAkismetTest\bootstrap;
+
 /**
  * @coversDefaultClass NetglueAkismet\Service\AkismetService
  */
 class AkismetServiceTest extends PHPUnit_Framework_TestCase {
+	
+	/**
+	 * @covers NetglueAkismet\Factory\AkismetServiceFactory::createService
+	 */
+	public function testServiceLocatorConfig() {
+		$sl = bootstrap::getServiceManager();
+		$key = 'NetglueAkismet\Service\AkismetService';
+		$service = $sl->get($key);
+		$this->assertInstanceOf('NetglueAkismet\Service\AkismetService', $service);
+	}
 	
 	/**
 	 * @covers ::__construct
