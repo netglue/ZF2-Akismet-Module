@@ -311,7 +311,7 @@ class AkismetService {
 			$params['comment_type'] = $type;
 		}
 		
-		$response = $this->call('submit-spam', $params);
+		$response = $this->call('submit-ham', $params);
 		$body = $response->getBody();
 		if(strtolower(trim($body)) == 'thanks for making the web a better place.') {
 			return true;
