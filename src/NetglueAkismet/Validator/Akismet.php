@@ -67,7 +67,7 @@ class Akismet extends AbstractValidator implements AkismetServiceAwareInterface 
 		$out = array();
 		
 		foreach($map as $formField => $apiParam) {
-			if(in_array($apiParam, $validParams)) {
+			if(in_array($apiParam, $validParams) && isset($context[$formField])) {
 				$out[$apiParam] = $context[$formField];
 			}
 		}
