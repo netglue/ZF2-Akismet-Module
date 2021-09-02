@@ -1,5 +1,9 @@
 # ZF2 Akismet Service Module
 
+## Abandoned
+
+If you're still using ZF and need this, it's not going anywhere, but it's also not going to receive any maintenance either. Akismet is still useful - you might want to check out [gsteel/akismet](https://github.com/gsteel/akismet) which is a pretty easy to use standalone client that's well tested… That way you can implement your own validators and just consume the api client!
+
 ## Intro
 
 A straightforward ZF2 module that provides a service for using the Akismet API and a handy validator you can attach to your form elements.
